@@ -14,7 +14,8 @@ def create_note():
             except FileNotFoundError:
                 with open(f'notes_{i}.txt', 'w', encoding="utf-8") as file:
                     file.write(text_widget.get("1.0", tk.END))
-                    break
+                view_notes()
+                break
     
     new_window = tk.Toplevel(app)
     new_window.title("Новая заметка")
