@@ -1,9 +1,12 @@
 import tkinter as tk
 import itertools
 
+X = 330
+Y = 500
+
 app = tk.Tk()
 app.title("Заметки")
-app.geometry("330x500")
+app.geometry("{}x{}".format(X, Y))
 
 
 canvas = tk.Canvas(app)
@@ -88,8 +91,10 @@ def view_notes():
 
 view_notes()
 
-button_1 = tk.Button(scrollable_frame, text="+", font=("Arial", 25), command=create_note)
+button_1 = tk.Button(app, text="+", font=("Arial", 25), command=create_note)
 button_1.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se", width=50, height=50)
+button_1.lift()
+
 
 app.update()
 app.mainloop()
