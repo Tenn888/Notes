@@ -27,6 +27,8 @@ def resize_frame(event):
 
 canvas.bind("<Configure>", resize_frame)
 
+app.bind("<MouseWheel>", lambda event: canvas.yview_scroll(-event.delta//120, "units"))
+
 
 def create_note():
     def save_note():
