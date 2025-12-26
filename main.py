@@ -5,6 +5,29 @@ app = tk.Tk()
 app.title("Заметки")
 app.geometry("330x500")
 
+
+canvas = tk.Canvas(app)
+scrollbar = tk.Scrollbar(app, orient="vertical", command=canvas.yview)
+canvas.configure(yscrollcommand=scrollbar.set)
+
+scrollbar.pack(side="right", fill="y")
+canvas.pack(side="left", fill="both", expand=True)
+
+scrollable_frame = tk.Frame(canvas)
+
+frame_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+)
+
+def resize_frame(event):
+    canvas.itemconfig(frame_id, width=event.width)
+
+canvas.bind("<Configure>", resize_frame)
+
+
 def create_note():
     def save_note():
         for i in itertools.count():
@@ -17,7 +40,7 @@ def create_note():
                 view_notes()
                 break
     
-    new_window = tk.Toplevel(app)
+    new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Новая заметка")
     new_window.geometry("300x400")
     text_widget = tk.Text(new_window)
@@ -33,7 +56,7 @@ def edit_note(idx):
         
         view_notes()
     
-    new_window = tk.Toplevel(app)
+    new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Редактирование заметки")
     new_window.geometry("300x400")
     text_widget = tk.Text(new_window)
@@ -47,7 +70,7 @@ def edit_note(idx):
     button_2.place(relx=0.5, rely=1.0, x=0, y=-10, anchor="s", width=100, height=30)
 
 def view_notes():
-    for widget in app.winfo_children():
+    for widget in scrollable_frame.winfo_children():
         if widget != button_1:
             widget.destroy()
     
@@ -55,7 +78,7 @@ def view_notes():
         try:
             with open(f'notes_{i}.txt', 'r', encoding="utf-8") as file:
                 note_content = file.read()
-                note_label = tk.Label(app, text=note_content, bg="lightyellow", anchor="w", justify="left", wraplength=300)
+                note_label = tk.Label(scrollable_frame, text=note_content, bg="lightyellow", anchor="w", justify="left", wraplength=300)
                 note_label.pack(pady=5, padx=5, fill="x")
                 note_label.bind("<Button-1>", lambda event, idx=i: edit_note(idx))
         except FileNotFoundError:
@@ -63,7 +86,7 @@ def view_notes():
 
 view_notes()
 
-button_1 = tk.Button(app, text="+", font=("Arial", 25), command=create_note)
+button_1 = tk.Button(scrollable_frame, text="+", font=("Arial", 25), command=create_note)
 button_1.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se", width=50, height=50)
 
 app.update()
