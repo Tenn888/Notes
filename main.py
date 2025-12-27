@@ -30,8 +30,16 @@ def resize_frame(event):
 
 canvas.bind("<Configure>", resize_frame)
 
-app.bind("<MouseWheel>", lambda event: canvas.yview_scroll(-event.delta//120, "units"))
+def on_mousewheel(event):
+    bbox = canvas.bbox("all")
+    if bbox:
+        x0, y0, x1, y1 = bbox
+        content_height = y1 - y0
+        # Прокручиваем только если содержимого больше видимой области
+        if content_height > canvas.winfo_height():
+            canvas.yview_scroll(-event.delta//120, "units")
 
+canvas.bind_all("<MouseWheel>", on_mousewheel)
 
 def create_note():
     def save_note():
