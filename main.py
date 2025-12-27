@@ -100,7 +100,7 @@ def view_notes():
 view_notes()
 
 button_1 = tk.Button(app, text="+", font=("Arial", 25), command=create_note)
-button_1.place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se", width=50, height=50)
+button_1.place(relx=1.0, rely=1.0, x=-30, y=-10, anchor="se", width=50, height=50)
 button_1.lift()
 
 
