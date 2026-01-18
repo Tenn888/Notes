@@ -5,32 +5,41 @@ import os
 X = 330
 Y = 500
 
+# Создание главного окна
 app = tk.Tk()
 app.title("Заметки")
 app.geometry("{}x{}".format(X, Y))
 
-
+# Создание прокручиваемой области
 canvas = tk.Canvas(app)
+# Создание вертикальной полосы прокрутки
 scrollbar = tk.Scrollbar(app, orient="vertical", command=canvas.yview)
+# Связывание полосы прокрутки с холстом
 canvas.configure(yscrollcommand=scrollbar.set)
 
+# Размещение элементов
 scrollbar.pack(side="right", fill="y")
 canvas.pack(fill="both", expand=True)
 
+# Создание внутреннего фрейма для размещения заметок
 scrollable_frame = tk.Frame(canvas)
 
+# Добавление внутреннего фрейма на холст
 frame_id = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
 
+# Обновление области прокрутки при изменении размера внутреннего фрейма
 scrollable_frame.bind(
     "<Configure>",
     lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
 )
 
-def resize_frame(event):
-    canvas.itemconfig(frame_id, width=event.width)
+# Обновление ширины внутреннего фрейма при изменении размера холста
+canvas.bind(
+    "<Configure>", 
+    lambda e: canvas.itemconfig(frame_id, width=e.width)
+)
 
-canvas.bind("<Configure>", resize_frame)
-
+# Обработка прокрутки колесиком мыши
 def on_mousewheel(event):
     bbox = canvas.bbox("all")
     if bbox:
@@ -40,8 +49,10 @@ def on_mousewheel(event):
         if content_height > canvas.winfo_height():
             canvas.yview_scroll(-event.delta//120, "units")
 
+# Привязка события прокрутки к холсту
 canvas.bind_all("<MouseWheel>", on_mousewheel)
 
+# Функции для создания новой заметки
 def create_note():
     def save_note():
         for i in itertools.count():
@@ -54,18 +65,22 @@ def create_note():
                 view_notes()
                 break
     
+    # Создание нового окна для заметки
     new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Новая заметка")
     new_window.geometry("300x410")
     text_widget = tk.Text(new_window)
     text_widget.pack(expand=True, fill="both")
     
+    # Панель инструментов для кнопок
     toolbar = tk.Frame(new_window, height=20)
     toolbar.pack(side=tk.LEFT, fill=tk.X, expand=True)
     toolbar.pack_propagate(False)
 
+    # Кнопка сохранения заметки
     tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
 
+# Функция для редактирования заметки
 def edit_note(idx):
     def save_note():
         with open(f'notes_{idx}.txt', 'w', encoding="utf-8") as file:
@@ -77,28 +92,35 @@ def edit_note(idx):
         os.remove(f'notes_{idx}.txt')
         view_notes()
     
+    # Создание нового окна для редактирования заметки
     new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Редактирование заметки")
     new_window.geometry("300x410")
     text_widget = tk.Text(new_window)
     text_widget.pack(expand=True, fill="both")
 
+    # Загрузка содержимого заметки в текстовый виджет
     with open(f'notes_{idx}.txt', 'r', encoding="utf-8") as file:
         content = file.read()
         text_widget.insert(tk.END, content)
     
+    # Панель инструментов для кнопок
     toolbar = tk.Frame(new_window, height=20)
     toolbar.pack(side=tk.LEFT, fill=tk.X, expand=True)
     toolbar.pack_propagate(False)
 
+    # Кнопки сохранения и удаления заметки
     tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
     tk.Button(toolbar, text="Удалить", font=("Arial", 12), command=lambda: delete_note(idx, new_window)).pack(side=tk.LEFT, padx=1)
 
+# Функция для отображения всех заметок
 def view_notes():
+    # Очистка текущих заметок
     for widget in scrollable_frame.winfo_children():
         if widget != button_1:
             widget.destroy()
     
+    # Загрузка и отображение всех заметок
     for i in itertools.count():
         try:
             with open(f'notes_{i}.txt', 'r', encoding="utf-8") as file:
@@ -111,10 +133,12 @@ def view_notes():
 
 view_notes()
 
+# Кнопка для создания новой заметки
 button_1 = tk.Button(app, text="+", font=("Arial", 25), command=create_note)
 button_1.place(relx=1.0, rely=1.0, x=-30, y=-10, anchor="se", width=50, height=50)
 button_1.lift()
 
 
+# Запуск главного цикла приложения
 app.update()
 app.mainloop()
