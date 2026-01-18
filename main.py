@@ -1,5 +1,6 @@
 import tkinter as tk
 import itertools
+import os
 
 X = 330
 Y = 500
@@ -14,7 +15,7 @@ scrollbar = tk.Scrollbar(app, orient="vertical", command=canvas.yview)
 canvas.configure(yscrollcommand=scrollbar.set)
 
 scrollbar.pack(side="right", fill="y")
-canvas.pack(side="left", fill="both", expand=True)
+canvas.pack(fill="both", expand=True)
 
 scrollable_frame = tk.Frame(canvas)
 
@@ -55,12 +56,15 @@ def create_note():
     
     new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Новая заметка")
-    new_window.geometry("300x400")
+    new_window.geometry("300x410")
     text_widget = tk.Text(new_window)
     text_widget.pack(expand=True, fill="both")
     
-    button_2 = tk.Button(new_window, text="Сохранить", font=("Arial", 12), command=save_note)
-    button_2.place(relx=0.5, rely=1.0, x=0, y=-10, anchor="s", width=100, height=30)
+    toolbar = tk.Frame(new_window, height=20)
+    toolbar.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    toolbar.pack_propagate(False)
+
+    tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
 
 def edit_note(idx):
     def save_note():
@@ -68,10 +72,14 @@ def edit_note(idx):
             file.write(text_widget.get("1.0", tk.END))
         
         view_notes()
+
+    def delete_note(idx, window):
+        os.remove(f'notes_{idx}.txt')
+        view_notes()
     
     new_window = tk.Toplevel(scrollable_frame)
     new_window.title("Редактирование заметки")
-    new_window.geometry("300x400")
+    new_window.geometry("300x410")
     text_widget = tk.Text(new_window)
     text_widget.pack(expand=True, fill="both")
 
@@ -79,8 +87,12 @@ def edit_note(idx):
         content = file.read()
         text_widget.insert(tk.END, content)
     
-    button_2 = tk.Button(new_window, text="Сохранить", font=("Arial", 12), command=save_note)
-    button_2.place(relx=0.5, rely=1.0, x=0, y=-10, anchor="s", width=100, height=30)
+    toolbar = tk.Frame(new_window, height=20)
+    toolbar.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    toolbar.pack_propagate(False)
+
+    tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
+    tk.Button(toolbar, text="Удалить", font=("Arial", 12), command=lambda: delete_note(idx, new_window)).pack(side=tk.LEFT, padx=1)
 
 def view_notes():
     for widget in scrollable_frame.winfo_children():
