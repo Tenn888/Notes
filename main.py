@@ -1,5 +1,4 @@
 import tkinter as tk
-import itertools
 import os
 
 X = 330
@@ -52,18 +51,28 @@ def on_mousewheel(event):
 # Привязка события прокрутки к холсту
 canvas.bind_all("<MouseWheel>", on_mousewheel)
 
+# Функция для получения списка файлов заметок
+def get_notes_files():
+    files = [f for f in os.listdir() if f.startswith("notes_") and f.endswith(".txt")]
+    return files
+
 # Функции для создания новой заметки
 def create_note():
     def save_note():
-        for i in itertools.count():
+        used_ind = set()
+        for name in get_notes_files():
             try:
-                with open(f'notes_{i}.txt', 'r') as file:
-                    continue
-            except FileNotFoundError:
-                with open(f'notes_{i}.txt', 'w', encoding="utf-8") as file:
-                    file.write(text_widget.get("1.0", tk.END))
-                view_notes()
-                break
+                used_ind.add(int(name[6:-4]))
+            except ValueError:
+                continue
+
+        new_idx = 1
+        while new_idx in used_ind:
+            new_idx += 1
+
+        with open(f'notes_{new_idx}.txt', 'w', encoding="utf-8") as file:
+            file.write(text_widget.get("1.0", tk.END))
+        view_notes()
     
     # Создание нового окна для заметки
     new_window = tk.Toplevel(scrollable_frame)
@@ -81,16 +90,24 @@ def create_note():
     tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
 
 # Функция для редактирования заметки
-def edit_note(idx):
+def edit_note(note_filename):
     def save_note():
-        with open(f'notes_{idx}.txt', 'w', encoding="utf-8") as file:
+        with open(note_filename, 'w', encoding="utf-8") as file:
             file.write(text_widget.get("1.0", tk.END))
         
         view_notes()
 
-    def delete_note(idx, window):
-        os.remove(f'notes_{idx}.txt')
+    def delete_note(window):
+        os.remove(note_filename)
+
+        for idx, name in enumerate(get_notes_files()):
+            current_idx = int(name[6:-4])
+            if current_idx > int(note_filename[6:-4]):
+                new_name = f'notes_{current_idx - 1}.txt'
+                os.rename(name, new_name)
+
         view_notes()
+        window.destroy()
     
     # Создание нового окна для редактирования заметки
     new_window = tk.Toplevel(scrollable_frame)
@@ -100,7 +117,7 @@ def edit_note(idx):
     text_widget.pack(expand=True, fill="both")
 
     # Загрузка содержимого заметки в текстовый виджет
-    with open(f'notes_{idx}.txt', 'r', encoding="utf-8") as file:
+    with open(note_filename, 'r', encoding="utf-8") as file:
         content = file.read()
         text_widget.insert(tk.END, content)
     
@@ -111,25 +128,29 @@ def edit_note(idx):
 
     # Кнопки сохранения и удаления заметки
     tk.Button(toolbar, text="Сохранить", font=("Arial", 12), command=save_note).pack(side=tk.LEFT, padx=1)
-    tk.Button(toolbar, text="Удалить", font=("Arial", 12), command=lambda: delete_note(idx, new_window)).pack(side=tk.LEFT, padx=1)
+    tk.Button(toolbar, text="Удалить", font=("Arial", 12), command=lambda: delete_note(new_window)).pack(side=tk.LEFT, padx=1)
 
 # Функция для отображения всех заметок
 def view_notes():
+    list_notes = get_notes_files()
     # Очистка текущих заметок
     for widget in scrollable_frame.winfo_children():
-        if widget != button_1:
-            widget.destroy()
+        widget.destroy()
     
     # Загрузка и отображение всех заметок
-    for i in itertools.count():
-        try:
-            with open(f'notes_{i}.txt', 'r', encoding="utf-8") as file:
-                note_content = file.read()
-                note_label = tk.Label(scrollable_frame, text=note_content, bg="lightyellow", anchor="w", justify="left", wraplength=300)
-                note_label.pack(pady=5, padx=5, fill="x")
-                note_label.bind("<Button-1>", lambda event, idx=i: edit_note(idx))
-        except FileNotFoundError:
-            break
+    for filename in list_notes:
+        with open(filename, 'r', encoding="utf-8") as file:
+            note_content = file.read()
+            note_label = tk.Label(
+                scrollable_frame, 
+                text=note_content, 
+                bg="lightyellow", 
+                anchor="w", 
+                justify="left", 
+                wraplength=300
+            )
+            note_label.pack(pady=5, padx=5, fill="x")
+            note_label.bind("<Button-1>", lambda event, note_filename=filename: edit_note(note_filename))
 
 view_notes()
 
