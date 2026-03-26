@@ -6,7 +6,7 @@ X = 330
 Y = 550
 
 class App(TKMT.ThemedTKinterFrame):
-    def __init__(self, title="Notes", theme="azure", mode="light", usecommandlineargs=True, usethemeconfigfile=True, X=X, Y=Y):
+    def __init__(self, title="Notes", theme="park", mode="light", usecommandlineargs=True, usethemeconfigfile=True, X=X, Y=Y):
         super().__init__(title, theme, mode, usecommandlineargs, usethemeconfigfile)
 
         self.root.geometry("{}x{}".format(X, Y))
@@ -35,7 +35,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
         self.view_notes()
 
-        self.add_button = tk.Button(self.root, text="+", font=("Arial", 25), command=self.create_note)
+        self.add_button = tk.Button(self.root, text="⋮", font=("Arial", 25), command=self.options)
         self.add_button.place(relx=1.0, rely=1.0, x=-30, y=-10, anchor="se", width=50, height=50)
         self.add_button.lift()
 
@@ -51,20 +51,33 @@ class App(TKMT.ThemedTKinterFrame):
         files = [f for f in os.listdir() if f.startswith("notes_") and f.endswith(".txt")]
         return files
     
-    def save_note(self):
-        with open(self.note_filename, 'w', encoding="utf-8") as file:
-            file.write(self.text_widget.get("1.0", tk.END))
+    def options(self):
+        if not hasattr(self, "_options_menu"):
+            self._options_menu = tk.Menu(self.root, tearoff=False)
+            self._options_menu.add_command(label="Новая заметка", command=self.create_note)
+            self._options_menu.add_separator()
+            self._options_menu.add_command(label="О программме", command=self.about)
 
-        self.view_notes()
+        menu = self._options_menu
 
-    def delete_note(self, window):
-        os.remove(self.note_filename)
+        self.root.update_idletasks()
+        menu.update_idletasks()
+        x = self.add_button.winfo_rootx()
+        btn_top = self.add_button.winfo_rooty()
+        menu_height = menu.winfo_reqheight()
+        y = max(0, btn_top - menu_height)
+        try:
+            menu.tk_popup(x, y)
+        finally:
+            menu.grab_release()
 
-        for idx, name in enumerate(self.get_notes_files()):
-            current_idx = int(name[6:-4])
-            if current_idx > int(self.note_filename[6:-4]):
-                new_name = f'notes_{current_idx - 1}.txt'
-                os.rename(name, new_name)
+    def about(self):
+        self.new_window = tk.Toplevel(self.scrollable_frame)
+        self.new_window.title("О программме")
+        self.new_window.geometry(f"200x205+{self.scrollable_frame.winfo_rootx() - 210}+{self.scrollable_frame.winfo_rooty()}")
+
+        text = tk.Label(self.new_window, text='Заметки на Python\nСделал: Tenn888', justify="center")
+        text.pack(padx=12, pady=12)
 
     def create_note(self):
         def save_note(window, text_widget):
@@ -86,7 +99,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         self.new_window = tk.Toplevel(self.scrollable_frame)
         self.new_window.title("Новая заметка")
-        self.new_window.geometry("300x410")
+        self.new_window.geometry(f"300x410+{self.scrollable_frame.winfo_rootx() - 310}+{self.scrollable_frame.winfo_rooty()}")
 
         toolbar = tk.Frame(self.new_window)
         toolbar.pack(side=tk.BOTTOM, fill=tk.X)
