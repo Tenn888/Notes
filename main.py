@@ -52,7 +52,32 @@ class App(TKMT.ThemedTKinterFrame):
         return files
     
     def options(self):
-        pass
+        if not hasattr(self, "_options_menu"):
+            self._options_menu = tk.Menu(self.root, tearoff=False)
+            self._options_menu.add_command(label="Новая заметка", command=self.create_note)
+            self._options_menu.add_separator()
+            self._options_menu.add_command(label="О программме", command=self.about)
+
+        menu = self._options_menu
+
+        self.root.update_idletasks()
+        menu.update_idletasks()
+        x = self.add_button.winfo_rootx()
+        btn_top = self.add_button.winfo_rooty()
+        menu_height = menu.winfo_reqheight()
+        y = max(0, btn_top - menu_height)
+        try:
+            menu.tk_popup(x, y)
+        finally:
+            menu.grab_release()
+
+    def about(self):
+        self.new_window = tk.Toplevel(self.scrollable_frame)
+        self.new_window.title("О программме")
+        self.new_window.geometry(f"200x205+{self.scrollable_frame.winfo_rootx() - 210}+{self.scrollable_frame.winfo_rooty()}")
+
+        text = tk.Label(self.new_window, text='Заметки на Python\nСделал: Tenn888', justify="center")
+        text.pack(padx=12, pady=12)
 
     def create_note(self):
         def save_note(window, text_widget):
@@ -74,7 +99,7 @@ class App(TKMT.ThemedTKinterFrame):
 
         self.new_window = tk.Toplevel(self.scrollable_frame)
         self.new_window.title("Новая заметка")
-        self.new_window.geometry("300x410")
+        self.new_window.geometry(f"300x410+{self.scrollable_frame.winfo_rootx() - 310}+{self.scrollable_frame.winfo_rooty()}")
 
         toolbar = tk.Frame(self.new_window)
         toolbar.pack(side=tk.BOTTOM, fill=tk.X)
