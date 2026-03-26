@@ -6,7 +6,7 @@ X = 330
 Y = 550
 
 class App(TKMT.ThemedTKinterFrame):
-    def __init__(self, title="Notes", theme="azure", mode="light", usecommandlineargs=True, usethemeconfigfile=True, X=X, Y=Y):
+    def __init__(self, title="Notes", theme="park", mode="light", usecommandlineargs=True, usethemeconfigfile=True, X=X, Y=Y):
         super().__init__(title, theme, mode, usecommandlineargs, usethemeconfigfile)
 
         self.root.geometry("{}x{}".format(X, Y))
@@ -35,7 +35,7 @@ class App(TKMT.ThemedTKinterFrame):
         self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
         self.view_notes()
 
-        self.add_button = tk.Button(self.root, text="+", font=("Arial", 25), command=self.create_note)
+        self.add_button = tk.Button(self.root, text="⋮", font=("Arial", 25), command=self.options)
         self.add_button.place(relx=1.0, rely=1.0, x=-30, y=-10, anchor="se", width=50, height=50)
         self.add_button.lift()
 
@@ -51,20 +51,8 @@ class App(TKMT.ThemedTKinterFrame):
         files = [f for f in os.listdir() if f.startswith("notes_") and f.endswith(".txt")]
         return files
     
-    def save_note(self):
-        with open(self.note_filename, 'w', encoding="utf-8") as file:
-            file.write(self.text_widget.get("1.0", tk.END))
-
-        self.view_notes()
-
-    def delete_note(self, window):
-        os.remove(self.note_filename)
-
-        for idx, name in enumerate(self.get_notes_files()):
-            current_idx = int(name[6:-4])
-            if current_idx > int(self.note_filename[6:-4]):
-                new_name = f'notes_{current_idx - 1}.txt'
-                os.rename(name, new_name)
+    def options(self):
+        pass
 
     def create_note(self):
         def save_note(window, text_widget):
